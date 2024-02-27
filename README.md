@@ -1,14 +1,24 @@
 <p align="center">
-    <img src="VedicAstroLogo.png" alt="Logo">
+    <img src="https://raw.githubusercontent.com/diliprk/VedicAstro/main/VedicAstroLogo.png?raw=True" alt="Logo">
     <p align="center">
-    <img src="https://img.shields.io/badge/pypi_version-v0.1.0-blue" alt="PyPi Latest Release"> <img src="https://img.shields.io/badge/python-3.11-limegreen" alt="Python Version"> <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License">
+    <img src="https://img.shields.io/pypi/v/VedicAstro" alt="PyPi Latest Release"> <img src="https://img.shields.io/badge/python-3.11-limegreen" alt="Python Version"> <img src="https://img.shields.io/badge/License-MIT-blue" alt="License">
     </p> 
+</p>
 
-<b>`VedicAstro`</b> is a python library built  study, practise and application of traditional Vedic Astrology. The goal of this package is to generate chart and planetary position data for Vedic Astrology systems , particularly `Krishnamurthi Paddhati` (KP) system. This package, primarily uses the `sidereal` branch of the [flatlib](https://github.com/flatangle/flatlib/tree/sidereal) library to obtain data from the swiss ephemeris (`pyswisseph`)
+<b>`VedicAstro`</b> is a python library built for the study, practise, research and application of traditional Vedic Astrology. The goal of this package is to generate chart and planetary position data for Vedic Astrology systems , particularly `Krishnamurthi Paddhati` (KP) system. This package, primarily uses the `sidereal` branch of the [flatlib](https://github.com/flatangle/flatlib/tree/sidereal) library to obtain data from the swiss ephemeris (`pyswisseph`)
 
 ## Installation
 Create a virtual environment in this project directory and install the required packages:
+**From PyPi**
+```bash
+pip install VedicAstro
+```
+**NOTE**: PyPI no longer supports specifying external packages (eg:git repo URLs) in `install_requires`. ([Read this](https://github.com/pypi/warehouse/issues/9404)) Packages specified in `dependency_links` will also not get automatically installed([Read this](https://setuptools.pypa.io/en/latest/deprecated/dependency_links.html)). To install the required package `flatlib` from the `sidereal` branch, run the following command, after completion of above `pip install VedicAstro` command:
+```bash
+pip install git+https://github.com/flatangle/flatlib.git@sidereal#egg=flatlib
+```
 
+**From local clone of Git Repo**
 ```bash
 python -m venv astrovenv
 source astrovenv/bin/activate
@@ -42,7 +52,7 @@ You can run the  below notebook, to get a handle of the above basic operations.<
 You can deploy this `VedicAstro` package using `FastAPI` on your local machine or remote server. Just run the below command from this directory where you have this `VedicAstroAPI.py` file
 
 ```bash
-uvicorn  VedicAstroAPI:app  --reload  --port  8088
+uvicorn VedicAstroAPI:app --reload --port 8088
 ```
 
 Thereafter, you can test the API service at `http://127.0.0.1:8088/docs` in your browser
