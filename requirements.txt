@@ -1,0 +1,6 @@
+polars
+fastapi
+uvicorn
+prettytable
+ipykernel
+git+https://github.com/flatangle/flatlib.git@sidereal
