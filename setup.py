@@ -9,6 +9,7 @@ setup(
     author="Dilip Rajkumar",
     author_email="diliprajkumar@gmail.com",
     description="A python package for Vedic Astrology, with a particular focus on the Krishnamurthi Paddhati system",
+    license="MIT",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/diliprk/VedicAstro",
