@@ -4,7 +4,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
     
 setup(
-    name="VedicAstro",
+    name="vedicastro",
     version="0.1.5",
     author="Dilip Rajkumar",
     author_email="diliprajkumar@gmail.com",
@@ -27,5 +27,5 @@ setup(
 print("IMPORTANT NOTE: PyPI no longer supports specifying external packages in `install_requires`")
 print("Packages specified in `dependency_links` will also not get automatically installed")
 print("To install the required package 'flatlib' from the 'sidereal' branch, run the following command \
-      after completion of `pip install VedicAstro` process:")
+      after completion of `pip install vedicastro` process:")
 print("pip install git+https://github.com/flatangle/flatlib.git@sidereal#egg=flatlib")
