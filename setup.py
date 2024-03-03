@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     
 setup(
     name="VedicAstro",
-    version="0.1.4",
+    version="0.1.5",
     author="Dilip Rajkumar",
     author_email="diliprajkumar@gmail.com",
     description="A python package for Vedic Astrology, with a particular focus on the Krishnamurthi Paddhati system",

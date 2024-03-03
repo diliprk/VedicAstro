@@ -12,7 +12,7 @@ Create a virtual environment in this project directory and install the required 
 
 ### From `PyPi`
 ```bash
-pip install VedicAstro
+pip install vedicastro
 ```
 **NOTE**: `PyPI` no longer supports specifying external packages (eg:git repo URLs) in `install_requires` in the `setup.py` file. ([Read this](https://github.com/pypi/warehouse/issues/9404)) Packages specified in `dependency_links` will also not get automatically installed([Read this](https://setuptools.pypa.io/en/latest/deprecated/dependency_links.html)). To install the required package `flatlib` from the `sidereal` branch, run the following command, after completion of above `pip install VedicAstro` command:
 ```bash
@@ -20,7 +20,12 @@ pip install git+https://github.com/flatangle/flatlib.git@sidereal#egg=flatlib
 ```
 
 ### From local clone of Git Repo
-Create a python virtual environment using `venv` or `miniconda`
+Clone the repo: 
+```bash
+https://github.com/diliprk/VedicAstro.git
+```
+
+Create a python virtual environment using `venv`
 ```bash
 python -m venv astrovenv
 source astrovenv/bin/activate
@@ -58,6 +63,9 @@ uvicorn VedicAstroAPI:app --reload --port 8088
 ```
 
 Thereafter, you can test the API service at `http://127.0.0.1:8088/docs` in your browser
+
+## Front-End Companion Project
+If you are looking a front end project to visualize the results of the `VedicAstroAPI` call, please check out https://github.com/diliprk/AstroVue
 
 ## Dedicatations
 This package is a dedication to the following great personalities, following in their footsteps:
