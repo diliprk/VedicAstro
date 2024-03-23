@@ -1,9 +1,15 @@
+import os
 import math
+import polars as pl
 from typing import Tuple
-from .VedicAstro import *
+from .VedicAstro import VedicHoroscopeData
+from .utils import pretty_data_table, dms_to_decdeg
 
 ## Read KP SubLord Divisions CSV File
-KP_SL_DMS_DATA = pl.read_csv("data/KP_SL_Divisions.csv")
+# Determine the absolute path to the directory where this script is located
+current_dir = os.path.abspath(os.path.dirname(__file__))
+csv_file_path = os.path.join(current_dir, "data", "KP_SL_Divisions.csv")
+KP_SL_DMS_DATA = pl.read_csv(csv_file_path)
 KP_SL_DMS_DATA = KP_SL_DMS_DATA\
                 .with_columns(pl.arange(1, KP_SL_DMS_DATA.height + 1).alias("SL_Div_Nr"))\
                 .with_columns([

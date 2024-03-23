@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     
 setup(
     name="vedicastro",
-    version="0.1.6",
+    version="0.1.7",
     author="Dilip Rajkumar",
     author_email="diliprajkumar@gmail.com",
     description="A python package for Vedic Astrology, with a particular focus on the Krishnamurthi Paddhati system",
@@ -13,6 +13,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/diliprk/VedicAstro",
+    package_data={'vedicastro': ['data/*.csv']},
     packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
