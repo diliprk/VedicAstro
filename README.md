@@ -55,6 +55,10 @@ The main class in this package is the `VedicHoroscopeData` class, which has the 
 
 You can run the  below notebook, to get a handle of the above basic operations.<br>[![ipynb file](https://img.shields.io/badge/VedicAstroStudy-notebook-brightgreen?logo=jupyter)](https://github.com/diliprk/VedicAstro/blob/main/VedicAstroStudy.ipynb)
 
+### Horary (Prasna)
+A seperate functionality has been added for computing KP Horary (`Prasna`) Chart, as it requires a completely different set of datetime objects for the ascendant computation.
+You can invoke these functions `get_horary_ascendant_degree` and `find_exact_ascendant_time` in the `horary_chart.py` for preparing chart and tables for a KP Horary Question
+
 ## API Development
 You can deploy this `VedicAstro` package using `FastAPI` on your local machine or remote server. Just run the below command from this directory where you have this `VedicAstroAPI.py` file
 

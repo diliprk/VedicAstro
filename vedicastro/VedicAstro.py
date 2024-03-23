@@ -3,10 +3,11 @@ from flatlib.chart import Chart
 from flatlib.geopos import GeoPos
 from flatlib.datetime import Datetime, Date
 from flatlib.object import GenericObject
-from .utils import *
 
 import collections
 import polars as pl
+
+from .utils import *
 
 
 ## GLOBAL VARS
@@ -46,6 +47,13 @@ ASPECT_MAPPING = {  const.NO_ASPECT: "No Aspect", const.CONJUNCTION: "Conjunctio
                     const.SESQUIQUINTILE: "Sesqui Quintile", const.SESQUISQUARE: "Sesqui Square",
                     const.BIQUINTILE: "Bi Quintile", const.QUINCUNX: "Quincunx",
                     }
+
+# Columns names for NamedTuple Collections / Final Output DataFrames
+HOUSES_TABLE_COLS = ["Object", "HouseNr","Rasi", "LonDecDeg", "SignLonDMS", "SignLonDecDeg", "DegSize",
+                     "Nakshatra", "RasiLord", "NakshatraLord", "SubLord", "SubSubLord"]
+
+PLANETS_TABLE_COLS = ["Object", "Rasi", "isRetroGrade", "LonDecDeg", "SignLonDMS", "SignLonDecDeg", "LatDMS",
+                        "Nakshatra", "RasiLord", "NakshatraLord", "SubLord", "SubSubLord" ,"HouseNr"]
 
 
 class VedicHoroscopeData:
@@ -188,15 +196,21 @@ class VedicHoroscopeData:
                 if j == i:
                     break
             i += 1  
+    
 
-    def get_planets_data_from_chart(self, chart: Chart):
-        """Generate the planets data table given a `flatlib.Chart` object"""
-        planets_table_cols = ["Object", "Rasi", "isRetroGrade", "LonDecDeg", "SignLonDMS", "SignLonDecDeg", "LatDMS",
-                            "Nakshatra", "RasiLord", "NakshatraLord", "SubLord", "SubSubLord" ,"HouseNr"]
-        PlanetsData = collections.namedtuple("PlanetsData",planets_table_cols)
+    def get_planets_data_from_chart(self, chart: Chart, new_houses_chart: Chart = None):
+        """
+        Generate the planets data table given a `flatlib.Chart` object.
+        Parameters
+        ==========
+        chart: flatlib Chart object using which planetary positions have to be generated
+        new_houses_chart: flatlib Chart Object using which new house numbers have to be
+                        computed, typically used along with KP Horary Method
+        """
+        PlanetsData = collections.namedtuple("PlanetsData",PLANETS_TABLE_COLS)
 
         # Get the house each planet is in
-        planet_in_house = self.get_planet_in_house(chart)
+        planet_in_house = self.get_planet_in_house(new_houses_chart) if new_houses_chart else self.get_planet_in_house(chart)
 
         ### Get Ascendant Data
         ascendant_data = self.get_ascendant_data(asc_data = chart.get(const.ASC), PlanetsDataCollection = PlanetsData)
@@ -226,9 +240,7 @@ class VedicHoroscopeData:
 
     def get_houses_data_from_chart(self, chart: Chart):
         """Generate the houses data table given a `flatlib.Chart` object"""
-        houses_table_cols = ["Object", "HouseNr","Rasi", "LonDecDeg", "SignLonDMS", "SignLonDecDeg", "DegSize",
-                            "Nakshatra", "RasiLord", "NakshatraLord", "SubLord", "SubSubLord"]
-        HousesData = collections.namedtuple("HousesData",houses_table_cols) # Create NamedTuple Collection to store data
+        HousesData = collections.namedtuple("HousesData", HOUSES_TABLE_COLS) # Create NamedTuple Collection to store data
         houses_data = []
         for house in chart.houses:    
             house_obj = str(house).strip('<').strip('>').split()
