@@ -74,7 +74,6 @@ class VedicHoroscopeData:
         longitude: longitude
         ayanamsa: ayanamsa 
         """
-
         self.year       = year
         self.month      = month
         self.day        = day
@@ -86,7 +85,6 @@ class VedicHoroscopeData:
         self.longitude  = longitude
         self.ayanamsa   = ayanamsa
         self.house_system = house_system
-
     
     def get_ayanamsa(self):
         """Returns an Ayanamsa System from flatlib.sidereal library, based on user input"""
@@ -166,11 +164,15 @@ class VedicHoroscopeData:
         ## Compute Sign lords
         sign_deg = deg % 360  # Normalize degree to [0, 360)
         sign_index = int(sign_deg // 30)  # Each zodiac sign is 30 degrees
-
-        ## Compute Nakshatra details
-        nakshatra_index = int(sign_deg // 13.332)  # Each nakshatra is 13.332 degrees
-        pada = int((sign_deg % 13.33) // 3.325) + 1  # Each pada is 3.325 degrees
         
+        # Compute Nakshatra details
+        nakshatra_deg = sign_deg % 13.332  # Each nakshatra is 13.332 degrees
+        nakshatra_index = int(sign_deg // 13.332)  # Find the nakshatra index
+        pada = int((nakshatra_deg % 13.332) // 3.325) + 1  # Each pada is 3.325 degrees
+
+        # Ensure nakshatra_index is within bounds
+        nakshatra_index = nakshatra_index % len(NAKSHATRAS)        
+
         # Compute SubLords
         deg = deg - 120 * int(deg / 120)
         degcum = 0
@@ -210,7 +212,8 @@ class VedicHoroscopeData:
         PlanetsData = collections.namedtuple("PlanetsData",PLANETS_TABLE_COLS)
 
         # Get the house each planet is in
-        planet_in_house = self.get_planet_in_house(new_houses_chart) if new_houses_chart else self.get_planet_in_house(chart)
+        planet_in_house = self.get_planet_in_house(planets_chart = chart, houses_chart = new_houses_chart) if new_houses_chart \
+                        else self.get_planet_in_house(planets_chart = chart, houses_chart = chart)
 
         ### Get Ascendant Data
         ascendant_data = self.get_ascendant_data(asc_data = chart.get(const.ASC), PlanetsDataCollection = PlanetsData)
@@ -262,12 +265,17 @@ class VedicHoroscopeData:
                             house_size, house_star, house_rasi_lord, house_star_lord, house_sub_lord, house_ss_lord)) 
         return houses_data
 
-    def get_consolidated_chart_data(self, chart : Chart, return_style : str = None):
-        """Create consolidated dict data where all objects (both planets and houses) are listed by rasi (sign)"""
+    def get_consolidated_chart_data(self, planets_data: collections.namedtuple, houses_data: collections.namedtuple, 
+                                    return_style : str = None):
+        """
+        Create consolidated dict data where all objects (both planets and houses) are listed by rasi (sign).
+        If `return_style == "dataframe_records"`, returns the consolidated data in the form of a list of dictionaries
+        If `return_style == None`, returns the consolidated data in the form of a dictionary grouped by rasi
+        """
         # Construct polars DataFrame of planets and houses data from the flatlib_sidereal Chart object
         req_cols = ["Rasi","Object","isRetroGrade", "LonDecDeg" ,"SignLonDMS", "SignLonDecDeg"]
-        planets_df = pl.DataFrame(self.get_planets_data_from_chart(chart = chart)).select(req_cols)
-        houses_df = pl.DataFrame(self.get_houses_data_from_chart(chart = chart)).with_columns(pl.lit(False).alias("isRetroGrade")).select(req_cols)
+        planets_df = pl.DataFrame(planets_data).select(req_cols)
+        houses_df = pl.DataFrame(houses_data).with_columns(pl.lit(False).alias("isRetroGrade")).select(req_cols)
         
         ## Create joined dataframe of planets and houses data
         df_concat = pl.concat([houses_df, planets_df])
@@ -310,18 +318,18 @@ class VedicHoroscopeData:
                                         "SignLonDMS" : lon_dms, "SignLonDecDeg": sign_lon_dd}
         return final_dict
 
-    def get_planet_in_house(self, chart: Chart):
+
+    def get_planet_in_house(self, houses_chart: Chart, planets_chart: Chart):
         """Determine which house each planet is in given a `flatlib.Chart` object"""
         planet_in_house = {}
 
         # Get the list of cusps (the boundary between two houses) along with their house numbers
-        cusps = sorted([(house.lon, int(house.id.replace('House', ''))) for house in chart.houses])
-
+        cusps = sorted([(house.lon, int(house.id.replace('House', ''))) for house in houses_chart.houses])
         # Add the first cusp (plus 360 degrees) as the end of the last house
         cusps.append((cusps[0][0] + 360, cusps[0][1])) 
-        # print("Cusps:",cusps)
+        # print("Cusps ADJ:",cusps)
 
-        for planet in chart.objects:
+        for planet in planets_chart.objects:
             planet_name = clean_select_objects_split_str(str(planet))[0]
             planet_lon = planet.lon
             for i in range(12):
@@ -334,7 +342,7 @@ class VedicHoroscopeData:
                     break
 
         return planet_in_house
-
+    
     def get_unique_house_nrs_for_rasi_lord(self, planets_df : pl.DataFrame, planet_name: str):
         """Returns the unique set of house numbers where the given planet is the rasi lord"""
         # Group by RasiLord and aggregate HouseNr into a list
@@ -356,24 +364,17 @@ class VedicHoroscopeData:
 
         return unique_house_nrs
 
-    def get_planet_wise_significators(self, chart: Chart):
+    def get_planet_wise_significators(self, planets_data: collections.namedtuple, houses_data: collections.namedtuple):
         """Generate the ABCD significators table for each planet"""
         significators_table_cols = ["Planet", "A", "B", "C", "D"]
         SignificatorsData = collections.namedtuple("PlanetSignificators", significators_table_cols)
 
-        # Get the planets data
-        planets_data = self.get_planets_data_from_chart(chart)
-        # Filter planets_data to remove objects like "Asc", "Chiron", "Syzygy", "Fortuna"
+        # Get the planets data and Filter planets_data to remove objects like "Asc", "Chiron", "Syzygy", "Fortuna"
         planets_data = [planet for planet in planets_data if planet.Object not in ["Asc", "Chiron", "Syzygy", "Fortuna"]]
 
         # Get the house each planet is in
         planets_house_deposition = {data.Object: data.HouseNr for data in planets_data}
 
-        # Get the houses data
-        houses_data = self.get_houses_data_from_chart(chart)
-
-        # Create a mapping of rashi lords to their houses
-        rashi_lord_to_house = {data.RasiLord: data.HouseNr for data in houses_data}
 
         significators_data = []
         for planet in planets_data:
@@ -394,18 +395,13 @@ class VedicHoroscopeData:
 
         return significators_data
 
-    def get_house_wise_significators(self, chart: Chart):
+    def get_house_wise_significators(self, planets_data : collections.namedtuple, houses_data: collections.namedtuple):
         """Generate the ABCD significators table for each house"""
         significators_table_cols = ["House", "A", "B", "C", "D"]
         SignificatorsData = collections.namedtuple("HouseSignificators", significators_table_cols)
 
-        # Get the planets data
-        planets_data = self.get_planets_data_from_chart(chart)
-        # Filter planets_data to remove objects like "Asc", "Chiron", "Syzygy", "Fortuna"
+        # Get the planets data and Filter planets_data to remove objects like "Asc", "Chiron", "Syzygy", "Fortuna"
         planets_data = [planet for planet in planets_data if planet.Object not in ["Asc", "Chiron", "Syzygy", "Fortuna"]]
-
-        # Get the houses data
-        houses_data = self.get_houses_data_from_chart(chart)
 
         # Create a mapping of planets to their star lords (Nakshatra Lords)
         planet_to_star_lord = {data.Object: data.NakshatraLord for data in planets_data}
@@ -438,7 +434,6 @@ class VedicHoroscopeData:
         # Get the moon object from the chart
         moon = chart.get(const.MOON)
         moon_details = clean_select_objects_split_str(str(moon))
-        moon_lon_dms = moon_details[2]
 
         # Moon's Details
         moon_rl_nl_sl = self.get_rl_nl_sl_data(deg = moon.lon)
