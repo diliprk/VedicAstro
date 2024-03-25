@@ -10,6 +10,11 @@ def clean_select_objects_split_str(input_str):
                           .replace("Pars Fortuna", "Fortuna"))
     return cleaned_str.split()
 
+def utc_offset_str_to_float(utc_offset: str) -> float:
+    hours, minutes = map(int, utc_offset.split(':'))
+    return hours + minutes / 60.0 if utc_offset.startswith('+') else -1 * (abs(hours) + minutes / 60.0)
+
+
 def pretty_data_table(named_tuple_data : list):
     """Converts a list of NamedTuple Collections to a PrettyTable"""
     from prettytable import PrettyTable
