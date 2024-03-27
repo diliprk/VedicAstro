@@ -87,18 +87,7 @@ async def get_horary_data(input: HoraryChartInput):
     """
     Generates all data for a given horary number, time and location as per KP Astrology system
     """
-    tz_offset = utils.utc_offset_str_to_float(input.utc)
-    horary_asc = horary_chart.get_horary_ascendant_degree(input.horary_number)
-    desired_asc = horary_asc["ZodiacDegreeLocation"]
-    matched_time  = horary_chart.find_exact_ascendant_time(input.year, input.month, input.day, tz_offset, input.latitude, input.longitude, desired_asc, input.ayanamsa)
-    secs_final = round(matched_time.second + (matched_time.microsecond) / 1_000_000, 1) + 0.05    
-    vhd_hora_houses = VedicAstro.VedicHoroscopeData(input.year, input.month, input.day,
-                                                    matched_time.hour, matched_time.minute, secs_final, 
-                                                    input.utc, input.latitude, input.longitude, input.ayanamsa, "Placidus")
-    
-    vhd_hora_houses_chart = vhd_hora_houses.generate_chart()
-    houses_data = vhd_hora_houses.get_houses_data_from_chart(vhd_hora_houses_chart)
-
+    matched_time, vhd_hora_houses_chart, houses_data  = horary_chart.find_exact_ascendant_time(input.year, input.month, input.day, input.utc, input.latitude, input.longitude, input.horary_number, input.ayanamsa)
     vhd_hora = VedicAstro.VedicHoroscopeData(input.year, input.month, input.day, 
                                               input.hour, input.minute, input.second,
                                               input.utc, input.latitude, input.longitude, 
@@ -106,7 +95,6 @@ async def get_horary_data(input: HoraryChartInput):
     
     vhd_hora_planets_chart = vhd_hora.generate_chart()
     planets_data = vhd_hora.get_planets_data_from_chart(vhd_hora_planets_chart, vhd_hora_houses_chart)
-
     planet_significators = vhd_hora.get_planet_wise_significators(planets_data, houses_data)
     planetary_aspects = vhd_hora.get_planetary_aspects(vhd_hora_planets_chart)
     house_significators = vhd_hora.get_house_wise_significators(planets_data, houses_data)

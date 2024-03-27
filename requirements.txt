@@ -1,6 +1,8 @@
+tqdm
 polars
 fastapi
 uvicorn
 prettytable
 ipykernel
-git+https://github.com/flatangle/flatlib.git@sidereal
+pyswisseph
+git+https://github.com/diliprk/flatlib.git@sidereal

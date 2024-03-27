@@ -16,7 +16,7 @@ pip install vedicastro
 ```
 **NOTE**: `PyPI` no longer supports specifying external packages (eg:git repo URLs) in `install_requires` in the `setup.py` file. ([Read this](https://github.com/pypi/warehouse/issues/9404)) Packages specified in `dependency_links` will also not get automatically installed([Read this](https://setuptools.pypa.io/en/latest/deprecated/dependency_links.html)). To install the required package `flatlib` from the `sidereal` branch, run the following command, after completion of above `pip install VedicAstro` command:
 ```bash
-pip install git+https://github.com/flatangle/flatlib.git@sidereal#egg=flatlib
+pip install git+https://github.com/diliprk/flatlib.git@sidereal#egg=flatlib
 ```
 
 ### From local clone of Git Repo
