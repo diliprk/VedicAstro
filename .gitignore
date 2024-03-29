@@ -36,6 +36,9 @@ MANIFEST
 # Virtual Environments
 astrovenv
 
+# ephemeris files
+swefiles
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
