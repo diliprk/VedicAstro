@@ -25,19 +25,14 @@ NAKSHATRAS = ['Ashwini','Bharani','Krittika','Rohini','Mrigashīrsha', 'Ardra', 
 'Maghā', 'PūrvaPhalgunī', 'UttaraPhalgunī', 'Hasta', 'Chitra', 'Svati', 'Vishakha', 'Anuradha', 'Jyeshtha', 'Mula', 
 'PurvaAshadha','UttaraAshadha', 'Shravana', 'Dhanishta','Shatabhisha', 'PurvaBhādrapadā', 'UttaraBhādrapadā', 'Revati']
 
-AYANAMSA_MAPPING = { "Lahiri": const.AY_LAHIRI, "Krishnamurti": const.AY_KRISHNAMURTI, "Raman": const.AY_RAMAN,
-                    "FaganBradley": const.AY_FAGAN_BRADLEY, "Deluce": const.AY_DELUCE, "Sassanian": const.AY_SASSANIAN,
-                    "Aldebaran15Taurus": const.AY_ALDEBARAN_15TAU, "GalacticCenter_05_Sag": const.AY_GALCENTER_5SAG
+AYANAMSA_MAPPING = { "Lahiri": const.AY_LAHIRI, "Lahiri_1940" : const.AY_LAHIRI_1940, 
+                    "Lahiri_VP285": const.AY_LAHIRI_VP285, "Lahiri_ICRC" : const.AY_LAHIRI_ICRC, "Raman": const.AY_RAMAN,
+                    "Krishnamurti": const.AY_KRISHNAMURTI, "Krishnamurti_Senthilathiban": const.AY_KRISHNAMURTI_SENTHILATHIBAN,
                     }
 
 
-HOUSE_SYSTEM_MAPPING = { "Placidus": const.HOUSES_PLACIDUS, "Koch": const.HOUSES_EQUAL, 
-                        "Porphyrius": const.HOUSES_PORPHYRIUS, "Regiomontanus": const.HOUSES_REGIOMONTANUS, 
-                        "Campanus": const.HOUSES_CAMPANUS, "Equal": const.HOUSES_EQUAL,
-                        "Equal 2": const.HOUSES_EQUAL_2, "Vehlow Equal": const.HOUSES_VEHLOW_EQUAL, 
-                        "Whole Sign": const.HOUSES_WHOLE_SIGN, "Meridian": const.HOUSES_MERIDIAN, 
-                        "Azimuthal": const.HOUSES_AZIMUTHAL, "Polich Page": const.HOUSES_POLICH_PAGE,
-                        "Alcabitus": const.HOUSES_ALCABITUS, "Morinus": const.HOUSES_MORINUS
+HOUSE_SYSTEM_MAPPING = { "Placidus": const.HOUSES_PLACIDUS, "Equal": const.HOUSES_EQUAL,
+                        "Equal 2": const.HOUSES_EQUAL_2, "Whole Sign": const.HOUSES_WHOLE_SIGN,
                     }
 
 ASPECT_MAPPING = {  const.NO_ASPECT: "No Aspect", const.CONJUNCTION: "Conjunction", const.SEXTILE: "Sextile",
