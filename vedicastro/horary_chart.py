@@ -6,9 +6,7 @@ from .utils import dms_to_decdeg, utc_offset_str_to_float
 from .VedicAstro import VedicHoroscopeData
 
 ## Global Constants
-SWE_AYANAMAS = { "Krishnamurti" : swe.SIDM_KRISHNAMURTI, "Krishnamurti_New": swe.SIDM_KRISHNAMURTI_VP291,
-                "Lahiri_1940": swe.SIDM_LAHIRI_1940, "Lahiri_VP285" : swe.SIDM_LAHIRI_VP285, "Lahiri_ICRC" : swe.SIDM_LAHIRI_ICRC,
-                "Raman" : swe.SIDM_RAMAN, "Yukteshwar" : swe.SIDM_YUKTESHWAR}
+SWE_AYANAMAS = { "Krishnamurti" : swe.SIDM_KRISHNAMURTI, "Krishnamurti_Senthilathiban": swe.SIDM_KRISHNAMURTI_VP291}
 
 # Determine the absolute path to the directory where this script is located
 current_dir = os.path.abspath(os.path.dirname(__file__))
