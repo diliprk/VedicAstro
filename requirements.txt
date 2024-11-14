@@ -1,8 +1,10 @@
 tqdm
+pytz
 polars
 fastapi
 uvicorn
 prettytable
 ipykernel
 pyswisseph
+timezonefinder
 git+https://github.com/diliprk/flatlib.git@sidereal

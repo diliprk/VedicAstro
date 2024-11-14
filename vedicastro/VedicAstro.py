@@ -6,17 +6,16 @@ from flatlib.object import GenericObject
 
 import collections
 import polars as pl
-
 from .utils import *
 
 
 ## GLOBAL VARS
+RASHIS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 
+          'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces']
+
 ROMAN_HOUSE_NUMBERS = {'House1': 'I', 'House2': 'II', 'House3': 'III', 'House4': 'IV', 'House5': 'V', 'House6': 'VI',
                     'House7': 'VII', 'House8': 'VIII', 'House9': 'IX', 'House10': 'X', 'House11': 'XI', 'House12': 'XII'
                     }
-
-RASHIS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 
-          'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces']
 
 ## Lords of the 12 Zodiac Signs
 SIGN_LORDS = ["Mars", "Venus", "Mercury", "Moon", "Sun", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Saturn", "Jupiter"]          
@@ -52,22 +51,24 @@ PLANETS_TABLE_COLS = ["Object", "Rasi", "isRetroGrade", "LonDecDeg", "SignLonDMS
 
 
 class VedicHoroscopeData:
-    def __init__(self, year:int, month:int, day:int, hour:int, minute:int, second : int, utc:str, 
-                 latitude:float, longitude:float, ayanamsa: str = "Lahiri", house_system : str = "Equal"):
+    def __init__(self, year:int, month:int, day:int, hour:int, minute:int, second : int,
+                 latitude:float, longitude:float, tz : str = None, ayanamsa: str = "Krishnamurti", house_system : str = "Placidus"):
         """
         Generates Planetary and House Positions Data for a time and place input.
 
         Parameters
         ==========
-        year: Birth Year
-        month: Birth Month
-        day: Birth Day
-        house: Birth Hour
-        minute: Birth Minute
-        utc: Country UTC
-        latitude: latitude
-        longitude: longitude
-        ayanamsa: ayanamsa 
+        year: Year input to generate chart, int (Eg: 2024) 
+        month: Month input to generate chart, int (1 - 12) 
+        day:  Day of the month input to generate chart, int  (Eg: 1 - 30,31) 
+        hour: Hour input to generate chart, int  (Eg: 0 - 23)
+        minute: Minute input to generate chart, int  (Eg: 0 - 59)
+        second: Second input to generate chart, int  (Eg: 0 - 59)
+        latitude: latitude, float
+        longitude: longitude, float
+        time_zone: timezone input to generate chart, str  (Eg: America/New_York)        
+        ayanamsa: ayanamsa input to generate chart, str
+        house: House System to generate chart, 
         """
         self.year       = year
         self.month      = month
@@ -75,12 +76,14 @@ class VedicHoroscopeData:
         self.hour       = hour
         self.minute     = minute
         self.second     = second
-        self.utc        = utc
         self.latitude   = latitude
         self.longitude  = longitude
         self.ayanamsa   = ayanamsa
         self.house_system = house_system
-    
+        self.time_zone = tz if tz else TimezoneFinder().timezone_at(lat=self.latitude, lng=self.longitude)
+        self.chart_time = datetime(self.year, self.month, self.day, self.hour, self.minute)
+        self.utc,_ = get_utc_offset(self.time_zone, self.chart_time)
+
     def get_ayanamsa(self):
         """Returns an Ayanamsa System from flatlib.sidereal library, based on user input"""
         return AYANAMSA_MAPPING.get(self.ayanamsa, None)
@@ -97,10 +100,10 @@ class VedicHoroscopeData:
         return chart
 
     def get_planetary_aspects(self, chart: Chart):
-        """      """
+        """Computes planetary aspects using flatlib modules getAspect"""
         planets = [const.SUN, const.MOON, const.MARS, const.MERCURY, const.JUPITER, const.VENUS, const.SATURN,
                     const.URANUS, const.NEPTUNE, const.PLUTO, const.NORTH_NODE, const.SOUTH_NODE]
-        aspects_output = []
+        # aspects_output = []
         aspects_dict = []
 
         for p1 in planets:
@@ -115,12 +118,102 @@ class VedicHoroscopeData:
                     if aspect.exists():
                         aspect_type = ASPECT_MAPPING[int(aspect.type)]  # Use global variable here
                         aspect_orb = round(aspect.orb, 3)  # get the orb value
-                        aspects_output.append(f'{p1_new} and {p2_new} are in {aspect_type} aspect with an orb of {aspect_orb} degrees')
-                        aspects_dict.append({"P1":p1_new, "P2": p2_new, "AspectType" : aspect_type, "AspectDeg" : aspect.type, "AspectOrb" : aspect_orb })
+                        # Calculate longitude difference
+                        p1_lon = round(obj1.lon, 3)
+                        p2_lon = round(obj2.lon, 3)
+                        lon_diff = round(abs(p1_lon - p2_lon), 3)
+                        if lon_diff > 180:
+                            lon_diff = 360 - lon_diff
+
+                        aspects_dict.append({"P1":p1_new, "P2": p2_new, "AspectType" : aspect_type, 
+                                            "AspectDeg" : aspect.type, "AspectOrb" : aspect_orb,
+                                            "P1_Lon": p1_lon,"P2_Lon": p2_lon,"LonDiff": lon_diff})                        
+                        
 
         return aspects_dict
 
+    def get_planetary_aspects_15(self, chart: Chart):
+        """
+        Computes exact planetary aspects based on multiples of 15 degrees without using flatlib's aspect functions.
+        """
+        planets = [const.SUN, const.MOON, const.MARS, const.MERCURY, const.JUPITER, const.VENUS, const.SATURN,
+                const.URANUS, const.NEPTUNE, const.PLUTO, const.NORTH_NODE, const.SOUTH_NODE]
+        aspects_dict = []
 
+        for p1 in planets:
+            for p2 in planets:
+                if p1 != p2:
+                    # Skip Rahu-Ketu pair as they're always 180 degrees apart
+                    if {p1, p2} == {const.NORTH_NODE, const.SOUTH_NODE}:
+                        continue
+
+                    obj1 = chart.get(p1)
+                    obj2 = chart.get(p2)
+                    
+                    # Replace North and South nodes with conventional names
+                    p1_name = p1.replace("North Node", "Rahu").replace("South Node", "Ketu")
+                    p2_name = p2.replace("North Node", "Rahu").replace("South Node", "Ketu")
+                    
+                    p1_lon = round(obj1.lon, 3)
+                    p2_lon = round(obj2.lon, 3)
+                    lon_diff = abs(p1_lon - p2_lon)
+                    if lon_diff > 180:
+                        lon_diff = 360 - lon_diff
+                    lon_diff = round(lon_diff, 3)
+
+                    # Check if lon_diff is a multiple of 15 degrees with a small tolerance
+                    if abs(lon_diff % 15) == 0.0 :
+                        
+                        aspects_dict.append({
+                            "P1": p1_name,
+                            "P2": p2_name,
+                            "P1_Lon": p1_lon,
+                            "P2_Lon": p2_lon,                            
+                            "AspectType": f"{int(lon_diff)}° Aspect",
+                            "AspectDeg": lon_diff
+                        })
+
+        # Remove duplicate entries using tuple sort
+        unique_aspects = {}
+        for aspect in aspects_dict:
+            planet_pair = tuple(sorted([aspect['P1'], aspect['P2']]))
+            if planet_pair not in unique_aspects:
+                unique_aspects[planet_pair] = aspect
+
+        return list(unique_aspects.values())
+  
+    def get_planetary_aspects_vedic(self, planets_data: collections.namedtuple):
+        """
+        Computes the major planetary aspects according to Vedic astrology, focusing on the positions of planets in houses and signs.
+        """
+
+        # Get the planets data and Filter planets_data to remove objects like "Asc", "Chiron", "Syzygy", "Fortuna"
+        planets_data = [planet for planet in planets_data if planet.Object not in ["Asc", "Chiron", "Syzygy", "Fortuna"]]
+
+        # Define Vedic aspect rules based on sign and house positions
+        vedic_aspects_rules = {
+            'Conjunction': lambda p1, p2: p1.Rasi == p2.Rasi or p1.HouseNr == p2.HouseNr,
+            'Opposition': lambda p1, p2: ((RASHIS.index(p1.Rasi) - RASHIS.index(p2.Rasi)) % 12 == 6 or abs(p1.HouseNr - p2.HouseNr) == 6),
+            'Trine': lambda p1, p2: ((RASHIS.index(p1.Rasi) - RASHIS.index(p2.Rasi)) % 12 in [4, 8] or abs(p1.HouseNr - p2.HouseNr) in [4, 8]),
+            'Square': lambda p1, p2: ((RASHIS.index(p1.Rasi) - RASHIS.index(p2.Rasi)) % 12 in [3, 9] or abs(p1.HouseNr - p2.HouseNr) in [3, 9]),
+            'Sextile': lambda p1, p2: ((RASHIS.index(p1.Rasi) - RASHIS.index(p2.Rasi)) % 12 in [2, 10] or abs(p1.HouseNr - p2.HouseNr) in [2, 10])
+        }
+
+        aspects_vedic_output = []
+        vedic_aspects_dict = []
+
+        # Check each pair of planets for aspects
+        for i in range(len(planets_data)):
+            for j in range(i + 1, len(planets_data)):             
+                for aspect_name, check_func in vedic_aspects_rules.items():
+                    if check_func(planets_data[i], planets_data[j]):
+                        aspects_vedic_output.append(f"{planets_data[i].Object} and {planets_data[j].Object} are in {aspect_name}")
+                        vedic_aspects_dict.append({"P1":planets_data[i].Object, "P2": planets_data[j].Object, "Aspect" : aspect_name, 
+                                                   "P1_HouseNr": planets_data[i].HouseNr, "P2_HouseNr": planets_data[j].HouseNr,
+                                                   "P1_Rasi": planets_data[i].Rasi, "P2_Rasi": planets_data[j].Rasi}
+                                                   )
+        return vedic_aspects_dict, aspects_vedic_output
+      
     def get_ascendant_data(self, asc_data: GenericObject, PlanetsDataCollection : collections.namedtuple):
         """Generates Ascendant Data and returns the data in the format of the PlanetsDataCollection Named Tuple"""
         asc_chart_data = clean_select_objects_split_str(str(asc_data))
@@ -193,8 +286,39 @@ class VedicHoroscopeData:
                 if j == i:
                     break
             i += 1  
-    
 
+
+    def get_transit_details(self):
+        """
+        Captures the rl_nl_sl transit data for all planets at the current chart time.
+        
+        Returns
+        =======
+        A named tuple collection containing the transit details for all planets.
+        """
+        # Define the named tuple for transit details
+        TransitDetails = collections.namedtuple('TransitDetails', [
+            'timestamp', 'PlanetName', 'PlanetLon', 'PlanetSign', 'Nakshatra',
+            'NakshatraLord', 'SubLord', 'SubLordSign', 'isRetrograde'
+        ])
+        chart = self.generate_chart()
+        transit_data = []
+        timestamp = f"{self.year}-{self.month:02d}-{self.day:02d} {self.hour:02d}:{self.minute:02d}:00"
+        for planet in chart.objects:  
+            if planet.id not in ["Chiron", "Syzygy", "Pars Fortuna"]:
+                planet_name = clean_select_objects_split_str(str(planet))[0]
+                ## Get additional details like Nakshatra, RL, NL, SL details          
+                rl_nl_sl_data = self.get_rl_nl_sl_data(deg = planet.lon)
+                planet_star = rl_nl_sl_data.get("Nakshatra", None)
+                planet_star_lord = rl_nl_sl_data.get("NakshatraLord", None)
+                planet_sub_lord = rl_nl_sl_data.get("SubLord", None)
+                sub_lord_sign = chart.get(planet_sub_lord.replace("Rahu","North Node").replace("Ketu", "South Node")).sign             
+
+                ## Append data to NamedTuple Collection
+                transit_data.append(TransitDetails(timestamp, planet_name, round(planet.lon,3), planet.sign, planet_star, 
+                                                planet_star_lord, planet_sub_lord, sub_lord_sign, planet.isRetrograde()))
+        return transit_data
+        
     def get_planets_data_from_chart(self, chart: Chart, new_houses_chart: Chart = None):
         """
         Generate the planets data table given a `flatlib.Chart` object.
@@ -286,7 +410,7 @@ class VedicHoroscopeData:
         ])
 
         ## Sort by Rashis Order from `Aries` to `Pisces` in Clockwise Order
-        result_df = result_df.with_columns(pl.col('Rasi').map_elements(lambda rasi: RASHIS.index(rasi)).alias('RashiOrder'))
+        result_df = result_df.with_columns(pl.col('Rasi').map_elements(lambda rasi: RASHIS.index(rasi), return_dtype=pl.Int32).alias('RashiOrder'))
         result_df = result_df.sort('RashiOrder').drop('RashiOrder') ## Sort by RashiOrder and Drop the column
 
 

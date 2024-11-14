@@ -1,4 +1,6 @@
-from datetime import datetime
+import pytz
+from timezonefinder import TimezoneFinder
+from datetime import datetime, date, timedelta
 from dateutil.relativedelta import relativedelta
 
 ## 
@@ -126,3 +128,35 @@ def compute_new_date(start_date : tuple, diff_value : float, direction: str):
         raise ValueError("direction must be either 'backward' or 'forward'")
 
     return new_date
+
+def get_utc_offset(timezone_loc : str, date: datetime):
+    """
+    Returns the UTC offset as a timedelta for a given latitude, longitude, and date.
+    
+    Parameters:
+    - timezone_loc (str) : The timezone location to compute tz info (Eg: America/New_York)
+    - date (datetime): The date for which to find the UTC offset.
+    
+    Returns:
+    - timedelta: UTC offset as a timedelta object.
+    """
+    # Get the timezone object
+    timezone = pytz.timezone(timezone_loc)
+
+    # Localize the date to the timezone
+    localized_date = timezone.localize(date)
+
+    # Get the UTC offset in seconds
+    utc_offset_sec = localized_date.utcoffset().total_seconds()
+    hours, remainder = divmod(abs(utc_offset_sec), 3600)
+    minutes = remainder // 60
+
+    # Format the offset as a string
+    sign = "+" if utc_offset_sec >= 0 else "-"
+    utc_offset_str = f"{sign}{int(hours):02}:{int(minutes):02}"    
+
+    # Convert seconds to a timedelta
+    utc_offset = timedelta(seconds=utc_offset_sec)
+
+
+    return utc_offset_str, utc_offset
