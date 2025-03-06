@@ -173,3 +173,4 @@ config.ini
 *.session-journal
 data/
 .vscode/
+astroenv
