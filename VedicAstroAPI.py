@@ -58,7 +58,8 @@ async def get_chart_data(input: ChartInput):
     """
     horoscope = VedicAstro.VedicHoroscopeData(input.year, input.month, input.day, 
                                               input.hour, input.minute, input.second,
-                                              input.utc, input.latitude, input.longitude, 
+                                              input.latitude, input.longitude, 
+                                              input.utc,
                                               input.ayanamsa, input.house_system)
     chart = horoscope.generate_chart()
     
